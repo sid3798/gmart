@@ -67,7 +67,7 @@ function App() {
       <h1>🛒 Gmart Assistant</h1>
 
       <button onClick={() => setShowForm(true)}>
-        ➕ Add Product To Shop to 22
+        ➕ Add Product To shopppp
       </button>
 
       {showForm && (
