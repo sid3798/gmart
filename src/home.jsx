@@ -90,29 +90,7 @@ function Home() {
 
   return (
     <div className="container">
-      <h2>🧾 Khata Assistant</h2>
-
-      <div className="cart-section">
-        <input
-          placeholder="🔍 Search customer..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <input
-          placeholder="Enter customer name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          placeholder="Mobile (optional)"
-          value={mobile}
-          onChange={(e) => setMobile(e.target.value)}
-        />
-
-        <button onClick={addCustomer}>➕ Add</button>
-      </div>
+     
 
       <h3>Customers</h3>
 
@@ -152,6 +130,36 @@ function Home() {
           )}
         </div>
       ))}
+
+
+
+{/* 
+//start  of search and add customer section */}
+      <div className="cart-section">
+        <input
+          placeholder="🔍 Search customer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <input
+          placeholder="Enter customer name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <input
+          placeholder="Mobile (optional)"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+        />
+
+        <button onClick={addCustomer}>➕ Add</button>
+      </div>
+
+      {/* end of search and add customer section */}
+
+
     </div>
   );
 }
