@@ -15,9 +15,9 @@
 /* 🌙 Dark Mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f172a;
+    --bg: #f5f5f5;
     --card: #1e293b;
-    --text: #f1f5f9;
+    --text: #070708;
     --subtext: #94a3b8;
     --border: #334155;
     --primary: #3b82f6;
