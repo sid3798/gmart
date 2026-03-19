@@ -1,6 +1,7 @@
 .container {
   padding: 20px;
   font-family: Arial;
+  background: #e68f8f;
   max-width: 500px;
   margin: auto;
 }
@@ -10,17 +11,17 @@ h1 {
 }
 
 .cart-section {
-  background: #fff;
+  background: #e594c2;
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
 }
 
 input {
-  width: 100%;
+  width: 80;
   padding: 10px;
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 14x;
 }
 
 button {
@@ -34,14 +35,14 @@ button {
 }
 
 button:hover {
-  background-color: #1a5edb;
+  background-color: #796721;
 }
 
 .product-item {
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background: #fff;
+  background: #83e9ee;
   margin-bottom: 8px;   
   border-radius: 6px;
 }
