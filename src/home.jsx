@@ -10,26 +10,7 @@ import {
 import { db } from "./firebase";
 import { useNavigate } from "react-router-dom";
 
-const handleTouchStart = (e) => {
-  setTouchStartX(e.targetTouches[0].clientX);
-  setTouchStartY(e.targetTouches[0].clientY);
-};
 
-const handleTouchEnd = (cust) => {
-  const deltaX = touchStartX - touchEndX;
-  const deltaY = Math.abs(touchStartY - e.changedTouches[0].clientY);
-
-  // 👉 ignore vertical scroll
-  if (deltaY > 50) return;
-
-  if (deltaX > 100) {
-    startEdit(cust);
-  }
-
-  if (deltaX < -100) {
-    deleteCustomer(cust.id);
-  }
-};
 
 function Home() {
   const navigate = useNavigate();
@@ -43,13 +24,12 @@ function Home() {
   const [editName, setEditName] = useState("");
   const [editMobile, setEditMobile] = useState("");
 
-  const [touchStartY, setTouchStartY] = useState(0);
+  const [dragItem, setDragItem] = useState({ id: null, x: 0 });
 
-  
 
   // 🔥 Swipe states
   const [touchStartX, setTouchStartX] = useState(0);
-  const [touchEndX, setTouchEndX] = useState(0);
+
 
   // 🔥 Fetch data
   useEffect(() => {
@@ -63,6 +43,18 @@ function Home() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+  const handleClickOutside = () => {
+    setSwipedId(null); // reset swipe
+  };
+
+  document.addEventListener("click", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("click", handleClickOutside);
+  };
+}, []);
 
   // 🔥 Add
   const addCustomer = async () => {
@@ -84,15 +76,16 @@ function Home() {
 
 
 
-const handleTouchEnd = (e, cust) => {
-  const endX = e.changedTouches[0].clientX;
-  const distance = endX - touchStartX;
+  const handleTouchEnd = (e, cust) => {
+    const endX = e.changedTouches[0].clientX;
+    const distance = endX - touchStartX;
 
-  if (distance > 80) {
-    // 👉 swipe RIGHT
-    setSwipedId(cust.id);
-  }
-};
+    if (distance > 80) {
+      setSwipedId(cust.id);
+    }
+
+    setDragItem({ id: null, x: 0 }); // ✅ reset
+  };
 
 
   // 🔥 Delete
@@ -123,11 +116,16 @@ const handleTouchEnd = (e, cust) => {
   };
 
   // 🔥 Swipe handlers
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-  };
+const handleTouchStart = (e, cust) => {
+  setTouchStartX(e.targetTouches[0].clientX);
 
-const [swipedId, setSwipedId] = useState(null);
+  // 👉 close previous card
+  if (swipedId && swipedId !== cust.id) {
+    setSwipedId(null);
+  }
+};
+
+  const [swipedId, setSwipedId] = useState(null);
 
   // 🔍 Filter
   const filteredCustomers = customers.filter((cust) => {
@@ -137,6 +135,15 @@ const [swipedId, setSwipedId] = useState(null);
       cust.mobile?.includes(search)
     );
   });
+
+  const handleTouchMove = (e, cust) => {
+    const currentX = e.targetTouches[0].clientX;
+    const distance = currentX - touchStartX;
+
+    if (distance > 0) {
+      setDragItem({ id: cust.id, x: distance });
+    }
+  };
 
   return (
     <div className="container">
@@ -160,10 +167,25 @@ const [swipedId, setSwipedId] = useState(null);
         <div
           key={cust.id}
           className="customer-card"
-          onClick={() => navigate(`/customer/${cust.id}`)}
-          onTouchStart={handleTouchStart}
-          
-onTouchEnd={(e) => handleTouchEnd(e, cust)}
+          onClick={() => {
+            if (swipedId === cust.id) {
+              setSwipedId(null); // reset swipe
+            } else {
+              navigate(`/customer/${cust.id}`);
+            }
+          }}
+          onTouchStart={(e) => handleTouchStart(e, cust)}
+          onTouchMove={(e) => handleTouchMove(e, cust)}
+          onTouchEnd={(e) => handleTouchEnd(e, cust)}
+          style={{
+  transform:
+    swipedId === cust.id
+      ? "translateX(80px)"
+      : dragItem.id === cust.id
+      ? `translateX(${dragItem.x}px)`
+      : "translateX(0px)",
+  transition: dragItem.id === cust.id ? "none" : "0.3s ease"
+}}
         >
           {editingId === cust.id ? (
             <div className="edit-mode">
@@ -208,44 +230,39 @@ onTouchEnd={(e) => handleTouchEnd(e, cust)}
                   {cust.mobile && <p>📱 {cust.mobile}</p>}
                 </div>
 
-                
+
               </div>
 
               <div className="card-actions">
-               {/* Default view */}
-{swipedId !== cust.id && (
-  <div className="card-actions">
-    
-  </div>
-)}
+  {swipedId === cust.id && (
+    <>
+      <button
+        className="edit-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          startEdit(cust);
+        }}
+      >
+        ✏️ Edit
+      </button>
 
-{/* Swiped view */}
-{swipedId === cust.id && (
-  <div className="card-actions">
-    <button
-      className="edit-btn"
-      onClick={(e) => {
-        e.stopPropagation();
-        startEdit(cust);
-      }}
-    >
-      ✏️ Edit
-    </button>
-  
+      <button
+        className="delete-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteCustomer(cust.id);
+        }}
+      >
+        🗑 Delete
+      </button>
+    </>
+  )}
+</div>
 
-    <button
-      className="delete-btn"
-      onClick={(e) => {
-        e.stopPropagation();
-        deleteCustomer(cust.id);
-      }}
-    >
-      🗑 Delete
-    </button>
-    
-  </div>
-)}
-              </div>
+
+
+
+
             </>
           )}
         </div>
@@ -270,7 +287,7 @@ onTouchEnd={(e) => handleTouchEnd(e, cust)}
     </div>
   );
 
-  
+
 }
 
 

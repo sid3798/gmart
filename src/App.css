@@ -390,6 +390,17 @@ button:hover {
   flex: 1;
 }
 
+.customer-card {
+  position: relative;
+  z-index: 2;
+}
+
+/* Background buttons layer */
+.card-actions {
+  position: relative;
+  z-index: 1;
+}
+
 
 
 /* Name */
