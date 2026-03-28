@@ -15,8 +15,8 @@
 /* 🌙 Dark Mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #fcfcfc;
-    --card: #000000;
+    --bg: #bab7b7;
+    --card: #ececec;
     --text: #070708;
     --subtext: #f1f1f1;
     --border: #334155;
@@ -24,6 +24,8 @@
     --primary-hover: #2563eb;
     --danger: #ef4444;
   }
+
+  
 }
 
 /* 🔥 Base */
