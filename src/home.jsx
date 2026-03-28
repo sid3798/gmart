@@ -91,6 +91,11 @@ function Home() {
   return (
     <div className="container">
      
+     <input
+          placeholder="🔍 Search customer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
       <h3>Customers</h3>
 
@@ -136,11 +141,7 @@ function Home() {
 {/* 
 //start  of search and add customer section */}
       <div className="cart-section">
-        <input
-          placeholder="🔍 Search customer..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        
 
         <input
           placeholder="Enter customer name"
