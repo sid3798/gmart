@@ -10,6 +10,27 @@ import {
 import { db } from "./firebase";
 import { useNavigate } from "react-router-dom";
 
+const handleTouchStart = (e) => {
+  setTouchStartX(e.targetTouches[0].clientX);
+  setTouchStartY(e.targetTouches[0].clientY);
+};
+
+const handleTouchEnd = (cust) => {
+  const deltaX = touchStartX - touchEndX;
+  const deltaY = Math.abs(touchStartY - e.changedTouches[0].clientY);
+
+  // 👉 ignore vertical scroll
+  if (deltaY > 50) return;
+
+  if (deltaX > 100) {
+    startEdit(cust);
+  }
+
+  if (deltaX < -100) {
+    deleteCustomer(cust.id);
+  }
+};
+
 function Home() {
   const navigate = useNavigate();
 
@@ -22,6 +43,14 @@ function Home() {
   const [editName, setEditName] = useState("");
   const [editMobile, setEditMobile] = useState("");
 
+  const [touchStartY, setTouchStartY] = useState(0);
+
+  
+
+  // 🔥 Swipe states
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+
   // 🔥 Fetch data
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "customers"), (snapshot) => {
@@ -32,7 +61,7 @@ function Home() {
       setCustomers(data);
     });
 
-    return () => unsubscribe(); // ✅ correct cleanup
+    return () => unsubscribe();
   }, []);
 
   // 🔥 Add
@@ -52,9 +81,23 @@ function Home() {
     setMobile("");
   };
 
+
+
+
+const handleTouchEnd = (e, cust) => {
+  const endX = e.changedTouches[0].clientX;
+  const distance = endX - touchStartX;
+
+  if (distance > 80) {
+    // 👉 swipe RIGHT
+    setSwipedId(cust.id);
+  }
+};
+
+
   // 🔥 Delete
   const deleteCustomer = async (id) => {
-    if (!window.confirm("Are you sure to delete?")) return;
+    if (!window.confirm("Delete this customer?")) return;
     await deleteDoc(doc(db, "customers", id));
   };
 
@@ -79,6 +122,13 @@ function Home() {
     setEditingId(null);
   };
 
+  // 🔥 Swipe handlers
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+const [swipedId, setSwipedId] = useState(null);
+
   // 🔍 Filter
   const filteredCustomers = customers.filter((cust) => {
     const s = search.toLowerCase();
@@ -90,12 +140,12 @@ function Home() {
 
   return (
     <div className="container">
-     
-     <input
-          placeholder="🔍 Search customer..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* 🔍 Search */}
+      <input
+        placeholder="🔍 Search customer..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       <h3>Customers</h3>
 
@@ -105,44 +155,104 @@ function Home() {
         <p>❌ No results for "{search}"</p>
       )}
 
+      {/* 🔥 Customer Cards */}
       {filteredCustomers.map((cust) => (
-        <div key={cust.id} className="product-item">
+        <div
+          key={cust.id}
+          className="customer-card"
+          onClick={() => navigate(`/customer/${cust.id}`)}
+          onTouchStart={handleTouchStart}
+          
+onTouchEnd={(e) => handleTouchEnd(e, cust)}
+        >
           {editingId === cust.id ? (
-            <>
-              <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-              <input value={editMobile} onChange={(e) => setEditMobile(e.target.value)} />
+            <div className="edit-mode">
+              <input
+                className="edit-input"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+              <input
+                className="edit-input"
+                value={editMobile}
+                onChange={(e) => setEditMobile(e.target.value)}
+              />
 
-              <button onClick={() => saveEdit(cust.id)}>💾 Save</button>
-              <button onClick={() => setEditingId(null)}>❌ Cancel</button>
-            </>
-          ) : (
-            <>
-              <div>
-                <strong>{cust.name}</strong>
-                {cust.mobile && <div>📱 {cust.mobile}</div>}
-              </div>
-
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button onClick={() => navigate(`/customer/${cust.id}`)}>
-                  ➕ Add Item
+              <div className="edit-actions">
+                <button
+                  className="save-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    saveEdit(cust.id);
+                  }}
+                >
+                  Save
                 </button>
 
-                <button onClick={() => startEdit(cust)}>✏️ Edit</button>
+                <button
+                  className="cancel-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingId(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="card-header">
+                <div>
+                  <h4>{cust.name}</h4>
+                  {cust.mobile && <p>📱 {cust.mobile}</p>}
+                </div>
 
-                <button onClick={() => deleteCustomer(cust.id)}>🗑 Delete</button>
+                
+              </div>
+
+              <div className="card-actions">
+               {/* Default view */}
+{swipedId !== cust.id && (
+  <div className="card-actions">
+    
+  </div>
+)}
+
+{/* Swiped view */}
+{swipedId === cust.id && (
+  <div className="card-actions">
+    <button
+      className="edit-btn"
+      onClick={(e) => {
+        e.stopPropagation();
+        startEdit(cust);
+      }}
+    >
+      ✏️ Edit
+    </button>
+  
+
+    <button
+      className="delete-btn"
+      onClick={(e) => {
+        e.stopPropagation();
+        deleteCustomer(cust.id);
+      }}
+    >
+      🗑 Delete
+    </button>
+    
+  </div>
+)}
               </div>
             </>
           )}
         </div>
       ))}
 
-
-
-{/* 
-//start  of search and add customer section */}
+      {/* ➕ Add Customer */}
       <div className="cart-section">
-        
-
         <input
           placeholder="Enter customer name"
           value={name}
@@ -157,12 +267,12 @@ function Home() {
 
         <button onClick={addCustomer}>➕ Add</button>
       </div>
-
-      {/* end of search and add customer section */}
-
-
     </div>
   );
+
+  
 }
+
+
 
 export default Home;
