@@ -472,6 +472,23 @@ button:hover {
   margin-top: 8px;
 }
 
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.header-row button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 18px;
+}
+
 /* // Calculator Page */
 /* Calculator.css */
 

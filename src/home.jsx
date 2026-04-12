@@ -153,10 +153,9 @@ const handleTouchStart = (e, cust) => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-<div>
-
-<h3>Customers</h3>
-<button onClick={() => navigate("/calculator/")}>Calculator</button>
+<div className="header-row">
+  <h3>Customers</h3>
+  <button onClick={() => navigate("/calculator")}>🧮</button>
 </div>
       
 
