@@ -44,7 +44,20 @@ function CustomerPage() {
           id: doc.id,
           ...doc.data()
         }));
-        setEntries(data);
+        const parseDate = (date) => {
+          // If already ISO → normal parse
+          const d = new Date(date);
+          if (!isNaN(d)) return d;
+
+          // Handle old format "DD/MM/YYYY"
+          const [day, month, year] = date.split("/");
+          return new Date(`${year}-${month}-${day}`);
+        };
+
+        const sorted = [...data].sort(
+          (a, b) => parseDate(b.date) - parseDate(a.date)
+        );
+        setEntries(sorted);
       }
     );
     return () => unsubscribe();
@@ -57,7 +70,7 @@ function CustomerPage() {
     await addDoc(collection(db, "customers", id, "entries"), {
       itemName,
       amount: Number(amount),
-      date: new Date().toLocaleDateString("en-GB"), // ✅ proper date
+      date: new Date().toISOString(), // ✅ proper date
       paid: false,
       createdAt: new Date()
     });
@@ -103,6 +116,21 @@ function CustomerPage() {
     .filter((e) => !e.paid)
     .reduce((sum, e) => sum + e.amount, 0);
 
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    const d = new Date(date);
+
+    // 🔥 If invalid → return original (old data)
+    if (isNaN(d)) return date;
+
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "2-digit",
+    });
+  };
+
   return (
     <div className="container">
 
@@ -126,8 +154,8 @@ function CustomerPage() {
               onChange={(e) => setAmount(e.target.value)}
             />
             <button onClick={handleSave} className="main-save">
-  💾 Save
-</button>
+              💾 Save
+            </button>
           </div>
 
           {/* TABLE */}
@@ -147,68 +175,68 @@ function CustomerPage() {
               <tbody>
                 {entries.map((e) => (
                   <tr key={e.id}>
-                    <td>{e.date}</td>
+                    <td>{formatDate(e.date)}</td>
 
                     {/* EDIT MODE */}
 
 
 
                     {editId === e.id ? (
-  <>
-    <td>
-      <input
-        className="edit-input"
-        value={editItem}
-        onChange={(ev) => setEditItem(ev.target.value)}
-      />
-    </td>
+                      <>
+                        <td>
+                          <input
+                            className="edit-input"
+                            value={editItem}
+                            onChange={(ev) => setEditItem(ev.target.value)}
+                          />
+                        </td>
 
-    <td>
-      <input
-        className="edit-input"
-        type="number"
-        value={editAmount}
-        onChange={(ev) => setEditAmount(ev.target.value)}
-      />
-    </td>
+                        <td>
+                          <input
+                            className="edit-input"
+                            type="number"
+                            value={editAmount}
+                            onChange={(ev) => setEditAmount(ev.target.value)}
+                          />
+                        </td>
 
-    <td colSpan="3">
-      <div className="edit-actions">
-        <button
-          className="save-btn"
-          onClick={() => saveEdit(e.id)}
-        >
-          💾
-        </button>
+                        <td colSpan="3">
+                          <div className="edit-actions">
+                            <button
+                              className="save-btn"
+                              onClick={() => saveEdit(e.id)}
+                            >
+                              💾
+                            </button>
 
-        <button
-          className="cancel-btn"
-          onClick={() => setEditId(null)}
-        >
-          ✖
-        </button>
-      </div>
-    </td>
-  </>
-) : (
+                            <button
+                              className="cancel-btn"
+                              onClick={() => setEditId(null)}
+                            >
+                              ✖
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
                       <>
                         <td>{e.itemName}</td>
                         <td>{e.amount}</td>
 
                         <td>
                           <div>
-  <label className="switch">
-    <input
-      type="checkbox"
-      checked={e.paid}
-      onChange={() => togglePayment(e)}
-    />
-    <span className="slider"></span>
-  </label>
-  <div style={{ fontSize: "10px" }}>
-    {e.paid ? "Paid" : "Pending"}
-  </div>
-</div>
+                            <label className="switch">
+                              <input
+                                type="checkbox"
+                                checked={e.paid}
+                                onChange={() => togglePayment(e)}
+                              />
+                              <span className="slider"></span>
+                            </label>
+                            <div style={{ fontSize: "10px" }}>
+                              {e.paid ? "Paid" : "Pending"}
+                            </div>
+                          </div>
                         </td>
 
                         <td>
